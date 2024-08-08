@@ -1,0 +1,120 @@
+import React, { useState, useEffect } from "react";
+
+function Game() {
+    const [username, setUsername] = useState("");
+    const [game, setGame] = useState(false);
+    const [guessnum, setGuessNum] = useState("");
+    const [comno, setComno] = useState("");
+    const [count, setCount] = useState(0);
+    const [result, setResult] = useState("");
+    const [bestScore, setBestScore] = useState(() => {
+        const savedScore = localStorage.getItem("bestScore");
+        return savedScore ? parseInt(savedScore, 10) : null;
+    });
+
+    useEffect(() => {
+        if (bestScore !== null) {
+            localStorage.setItem("bestScore", bestScore);
+        }
+    }, [bestScore]);
+
+    const handleChange = (e) => {
+        setUsername(e.target.value);
+    };
+
+    const handleGuess = (e) => {
+        setGuessNum(e.target.value);
+    };
+
+    function secretNumber() {
+        let num = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+        num.sort(() => Math.random() - 0.5);
+        return num.slice(0, 4).join('');
+    }
+
+    const gameStart = () => {
+        if (username) {
+            setGame(true);
+            setComno(secretNumber());
+            setCount(0);
+            setResult("");
+        } else {
+            alert("Please enter username to start the game");
+        }
+    };
+
+    const confirmGuess = () => {
+        if (guessnum.length !== 4) {
+            alert("Please enter a 4-digit number");
+            return;
+        }
+
+        let plus = 0;
+        let minus = 0;
+
+        for (let i = 0; i < 4; i++) {
+            let digit = guessnum[i];
+            if (digit === comno[i]) {
+                plus++;
+            } else if (comno.includes(digit)) {
+                minus++;
+            }
+        }
+
+        const result = "+".repeat(plus) + "-".repeat(minus);
+        setResult(result);
+        setCount(count + 1);
+
+        if (plus === 4) {
+            alert(`Congratulations ${username}! You've guessed the number in ${count + 1} attempts.`);
+            
+            if (bestScore === null || count + 1 < bestScore) {
+                setBestScore(count + 1);
+                alert(`New Best Score: ${count + 1} attempts!`);
+            }
+            
+            setGame(false); // End the game
+        }
+    };
+
+    console.log('Current Best Score:', bestScore); // Debugging line
+
+    return (
+        <>
+            <h2>Number Guessing Game</h2>
+            {!game ? (
+                <>
+                    <input
+                        type="text"
+                        placeholder="Enter your username"
+                        name="username"
+                        value={username}
+                        onChange={handleChange}
+                    />
+                    <br />
+                    <br />
+                    <button onClick={gameStart}>Start Game</button>
+                    {bestScore !== null && <p>Best Score: {bestScore} attempts</p>}
+                </>
+            ) : (
+                <div>
+                    <p>Welcome {username}, let's start the game!</p>
+                    <p>Number of guesses: {count}</p>
+                    <p>Result: {result}</p>
+                    <input
+                        type="text"
+                        placeholder="Enter guess number"
+                        value={guessnum}
+                        onChange={handleGuess}
+                    />
+                    <br />
+                    <br />
+                    <button onClick={confirmGuess}>Submit</button>
+                    {bestScore !== null && <p>Best Score: {bestScore} attempts</p>}
+                </div>
+            )}
+        </>
+    );
+}
+
+export default Game;
